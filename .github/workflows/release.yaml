@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    if: github.repository_owner == 'thkim0022'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Version
+        id: extract_version_name   
+        run: echo "##[set-output name=version;]$(echo '${{ github.event.head_commit.message }}' | egrep -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')"  
+
+      - name: Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ steps.extract_version_name.outputs.version }}
+          release_name: v${{ steps.extract_version_name.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
